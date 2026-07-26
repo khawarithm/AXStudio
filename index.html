@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AXStudio — PDF Toolkit</title>
+<meta name="description" content="AXStudio: PDF Viewer, Editor, Export, OCR, dan Printing — Progressive Web App">
+<meta name="theme-color" content="#6750A4">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/viewer.css">
+<link rel="stylesheet" href="css/dialogs.css">
+<link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+<!-- ============ SPLASH SCREEN ============ -->
+<div id="splash-screen" class="splash-screen">
+  <div class="splash-logo">
+    <svg width="72" height="72" viewBox="0 0 24 24" fill="none">
+      <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="var(--md-sys-color-primary)"/>
+      <path d="M15 2v5h5" fill="var(--md-sys-color-primary-container)"/>
+      <text x="7" y="16" font-size="6" fill="#fff" font-family="Roboto, sans-serif" font-weight="700">AX</text>
+    </svg>
+  </div>
+  <div class="splash-title">AXStudio</div>
+  <div class="splash-progress"><div class="splash-progress-bar"></div></div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app" class="app-shell" hidden>
+
+  <!-- Top App Bar -->
+  <header class="top-app-bar" id="top-app-bar">
+    <button class="icon-btn" id="btn-menu" aria-label="Menu" title="Menu">
+      <span class="material-icon">menu</span>
+    </button>
+    <div class="app-bar-title">
+      <span id="current-doc-name">AXStudio</span>
+    </div>
+    <div class="app-bar-actions">
+      <button class="icon-btn" id="btn-search" aria-label="Cari teks" title="Cari teks">
+        <span class="material-icon">search</span>
+      </button>
+      <button class="icon-btn" id="btn-theme-toggle" aria-label="Ganti tema" title="Ganti tema">
+        <span class="material-icon" id="theme-icon">dark_mode</span>
+      </button>
+      <button class="icon-btn" id="btn-more" aria-label="Menu lainnya" title="Lainnya">
+        <span class="material-icon">more_vert</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Sidebar (Desktop) / Drawer (Mobile) -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <span class="material-icon brand-icon">picture_as_pdf</span>
+          <span class="brand-name">AXStudio</span>
+        </div>
+      </div>
+      <ul class="sidebar-nav">
+        <li><button class="nav-item active" data-view="viewer"><span class="material-icon">visibility</span><span>Viewer</span></button></li>
+        <li><button class="nav-item" data-view="export"><span class="material-icon">image</span><span>Export</span></button></li>
+        <li><button class="nav-item" data-view="extract"><span class="material-icon">text_snippet</span><span>Extract Teks</span></button></li>
+        <li><button class="nav-item" data-view="utilities"><span class="material-icon">construction</span><span>Utilitas PDF</span></button></li>
+        <li><button class="nav-item" data-view="print"><span class="material-icon">print</span><span>Print</span></button></li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="nav-item" id="btn-open-file-sidebar">
+          <span class="material-icon">folder_open</span><span>Buka PDF</span>
+        </button>
+      </div>
+    </nav>
+    <div class="scrim" id="scrim"></div>
+
+    <!-- Thumbnail Panel -->
+    <aside class="thumbnail-panel" id="thumbnail-panel">
+      <div class="thumbnail-panel-header">
+        <span>Halaman</span>
+        <button class="icon-btn small" id="btn-close-thumbnails" aria-label="Tutup"><span class="material-icon">close</span></button>
+      </div>
+      <div class="thumbnail-list" id="thumbnail-list"></div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+
+      <!-- View: Empty state / Drop zone -->
+      <section class="view active" id="view-empty">
+        <div class="drop-zone" id="drop-zone">
+          <span class="material-icon drop-icon">picture_as_pdf</span>
+          <h2>Buka atau seret file PDF</h2>
+          <p>Drag &amp; drop file PDF ke sini, atau pilih dari perangkat Anda</p>
+          <button class="btn btn-filled" id="btn-open-file">
+            <span class="material-icon">folder_open</span> Pilih File PDF
+          </button>
+          <input type="file" id="file-input" accept="application/pdf" hidden>
+        </div>
+      </section>
+
+      <!-- View: PDF Viewer -->
+      <section class="view" id="view-viewer">
+        <div class="viewer-toolbar">
+          <button class="icon-btn" id="btn-toggle-thumbnails" title="Thumbnail"><span class="material-icon">view_sidebar</span></button>
+          <div class="toolbar-group">
+            <button class="icon-btn" id="btn-zoom-out" title="Zoom Out"><span class="material-icon">zoom_out</span></button>
+            <span class="zoom-label" id="zoom-label">100%</span>
+            <button class="icon-btn" id="btn-zoom-in" title="Zoom In"><span class="material-icon">zoom_in</span></button>
+          </div>
+          <button class="icon-btn" id="btn-rotate" title="Rotate"><span class="material-icon">rotate_right</span></button>
+          <div class="toolbar-group page-nav">
+            <input type="number" id="page-input" min="1" value="1" class="page-input">
+            <span>/ <span id="page-count">0</span></span>
+          </div>
+          <button class="icon-btn" id="btn-bookmark" title="Bookmark halaman ini"><span class="material-icon">bookmark_border</span></button>
+        </div>
+        <div class="viewer-canvas-wrap" id="viewer-canvas-wrap">
+          <div class="pdf-pages" id="pdf-pages"></div>
+        </div>
+        <div class="search-bar" id="search-bar" hidden>
+          <span class="material-icon">search</span>
+          <input type="text" id="search-input" placeholder="Cari teks dalam dokumen…">
+          <span class="search-count" id="search-count"></span>
+          <button class="icon-btn small" id="btn-search-prev" title="Sebelumnya"><span class="material-icon">keyboard_arrow_up</span></button>
+          <button class="icon-btn small" id="btn-search-next" title="Berikutnya"><span class="material-icon">keyboard_arrow_down</span></button>
+          <button class="icon-btn small" id="btn-search-close" title="Tutup"><span class="material-icon">close</span></button>
+        </div>
+      </section>
+
+      <!-- View: Export -->
+      <section class="view" id="view-export">
+        <div class="panel">
+          <h2>Export PDF ke Gambar</h2>
+          <p class="panel-desc">Ubah halaman PDF menjadi gambar PNG atau JPG.</p>
+          <div class="form-row">
+            <label>Format</label>
+            <div class="segmented" id="export-format">
+              <button class="segment active" data-value="png">PNG</button>
+              <button class="segment" data-value="jpg">JPG</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Kualitas <span id="export-quality-val">92%</span></label>
+            <input type="range" id="export-quality" min="10" max="100" value="92">
+          </div>
+          <div class="form-row">
+            <label>Skala Resolusi <span id="export-scale-val">2x</span></label>
+            <input type="range" id="export-scale" min="1" max="4" step="0.5" value="2">
+          </div>
+          <div class="form-row">
+            <label>Halaman</label>
+            <div class="radio-group">
+              <label class="radio"><input type="radio" name="export-range" value="all" checked> Semua Halaman</label>
+              <label class="radio"><input type="radio" name="export-range" value="custom"> Kustom (mis. 1-3,5)</label>
+            </div>
+            <input type="text" id="export-page-range" placeholder="1-3,5,7" disabled class="text-field">
+          </div>
+          <button class="btn btn-filled" id="btn-export-images">
+            <span class="material-icon">download</span> Export Gambar
+          </button>
+          <div class="progress-inline" id="export-progress" hidden>
+            <div class="linear-progress"><div class="linear-progress-bar"></div></div>
+            <span id="export-progress-label">Memproses…</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Extract Text -->
+      <section class="view" id="view-extract">
+        <div class="panel">
+          <h2>Ekstrak Teks</h2>
+          <p class="panel-desc">Ambil teks dari dokumen. Untuk PDF hasil scan, gunakan OCR.</p>
+          <div class="form-row">
+            <label class="switch-row">
+              <span>Gunakan OCR (untuk PDF hasil scan)</span>
+              <label class="switch">
+                <input type="checkbox" id="extract-ocr-toggle">
+                <span class="switch-slider"></span>
+              </label>
+            </label>
+          </div>
+          <div class="form-row" id="ocr-lang-row" hidden>
+            <label>Bahasa OCR</label>
+            <select id="ocr-lang" class="text-field">
+              <option value="eng">Inggris</option>
+              <option value="ind">Indonesia</option>
+              <option value="eng+ind">Inggris + Indonesia</option>
+            </select>
+          </div>
+          <button class="btn btn-filled" id="btn-extract-text">
+            <span class="material-icon">text_snippet</span> Ekstrak Teks
+          </button>
+          <div class="progress-inline" id="extract-progress" hidden>
+            <div class="linear-progress"><div class="linear-progress-bar"></div></div>
+            <span id="extract-progress-label">Memproses…</span>
+          </div>
+          <div class="text-result" id="extract-result" hidden>
+            <textarea id="extract-textarea" readonly></textarea>
+            <div class="text-result-actions">
+              <button class="btn btn-tonal" id="btn-copy-text"><span class="material-icon">content_copy</span> Copy</button>
+              <button class="btn btn-tonal" id="btn-export-txt"><span class="material-icon">description</span> Export TXT</button>
+              <button class="btn btn-tonal" id="btn-export-docx"><span class="material-icon">article</span> Export DOCX</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Utilities -->
+      <section class="view" id="view-utilities">
+        <div class="panel">
+          <h2>Utilitas PDF</h2>
+          <div class="utility-grid">
+
+            <div class="utility-card" data-tool="merge">
+              <span class="material-icon">call_merge</span>
+              <h3>Gabung PDF</h3>
+              <p>Gabungkan beberapa file PDF menjadi satu.</p>
+              <input type="file" class="util-file-input" data-tool="merge" accept="application/pdf" multiple hidden>
+              <button class="btn btn-tonal util-trigger" data-tool="merge">Pilih File</button>
+            </div>
+
+            <div class="utility-card" data-tool="split">
+              <span class="material-icon">call_split</span>
+              <h3>Split PDF</h3>
+              <p>Pisahkan halaman menjadi file PDF terpisah.</p>
+              <input type="text" id="split-range" class="text-field" placeholder="Contoh: 1-2,3,4-5">
+              <button class="btn btn-tonal util-trigger" data-tool="split">Split Dokumen Aktif</button>
+            </div>
+
+            <div class="utility-card" data-tool="rotate">
+              <span class="material-icon">rotate_90_degrees_ccw</span>
+              <h3>Rotate Halaman</h3>
+              <p>Putar halaman tertentu pada dokumen aktif.</p>
+              <input type="text" id="rotate-range" class="text-field" placeholder="Halaman, mis. 1,2,3">
+              <select id="rotate-degree" class="text-field">
+                <option value="90">90°</option>
+                <option value="180">180°</option>
+                <option value="270">270°</option>
+              </select>
+              <button class="btn btn-tonal util-trigger" data-tool="rotate">Terapkan Rotasi</button>
+            </div>
+
+            <div class="utility-card" data-tool="delete">
+              <span class="material-icon">delete_sweep</span>
+              <h3>Hapus Halaman</h3>
+              <p>Hapus halaman tertentu dari dokumen aktif.</p>
+              <input type="text" id="delete-range" class="text-field" placeholder="Mis. 2,4-5">
+              <button class="btn btn-tonal util-trigger" data-tool="delete">Hapus Halaman</button>
+            </div>
+
+            <div class="utility-card" data-tool="rearrange">
+              <span class="material-icon">reorder</span>
+              <h3>Susun Ulang Halaman</h3>
+              <p>Atur ulang urutan halaman dengan drag & drop.</p>
+              <button class="btn btn-tonal util-trigger" data-tool="rearrange">Buka Editor Urutan</button>
+            </div>
+
+            <div class="utility-card" data-tool="compress">
+              <span class="material-icon">compress</span>
+              <h3>Kompres PDF</h3>
+              <p>Kurangi ukuran file dengan mengompres gambar.</p>
+              <div class="segmented" id="compress-level">
+                <button class="segment" data-value="low">Ringan</button>
+                <button class="segment active" data-value="medium">Sedang</button>
+                <button class="segment" data-value="high">Tinggi</button>
+              </div>
+              <button class="btn btn-tonal util-trigger" data-tool="compress">Kompres Dokumen Aktif</button>
+            </div>
+
+            <div class="utility-card" data-tool="watermark">
+              <span class="material-icon">water_drop</span>
+              <h3>Tambah Watermark</h3>
+              <p>Sisipkan teks watermark ke semua halaman.</p>
+              <input type="text" id="watermark-text" class="text-field" placeholder="Teks watermark">
+              <input type="range" id="watermark-opacity" min="10" max="100" value="30">
+              <button class="btn btn-tonal util-trigger" data-tool="watermark">Terapkan Watermark</button>
+            </div>
+
+            <div class="utility-card" data-tool="password">
+              <span class="material-icon">lock</span>
+              <h3>Password Protect</h3>
+              <p>Lindungi PDF dengan kata sandi (metadata terenkripsi).</p>
+              <input type="password" id="password-input" class="text-field" placeholder="Masukkan password">
+              <button class="btn btn-tonal util-trigger" data-tool="password">Terapkan Password</button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Print -->
+      <section class="view" id="view-print">
+        <div class="panel">
+          <h2>Print</h2>
+          <div class="form-row">
+            <label>Ukuran Kertas</label>
+            <select id="print-paper-size" class="text-field">
+              <option value="a4">A4 (210 × 297 mm)</option>
+              <option value="a5">A5 (148 × 210 mm)</option>
+              <option value="letter">Letter (8.5 × 11 in)</option>
+              <option value="thermal58">Thermal 58mm</option>
+              <option value="thermal80">Thermal 80mm</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Orientasi</label>
+            <div class="segmented" id="print-orientation">
+              <button class="segment active" data-value="portrait">Portrait</button>
+              <button class="segment" data-value="landscape">Landscape</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Margin (mm) <span id="print-margin-val">10mm</span></label>
+            <input type="range" id="print-margin" min="0" max="30" value="10">
+          </div>
+          <div class="form-row">
+            <label>Metode Printer</label>
+            <select id="print-method" class="text-field">
+              <option value="system">Print Sistem / Android Print API</option>
+              <option value="bluetooth">Bluetooth Printer</option>
+              <option value="usb">USB OTG Printer</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Halaman</label>
+            <div class="radio-group">
+              <label class="radio"><input type="radio" name="print-range" value="all" checked> Semua Halaman</label>
+              <label class="radio"><input type="radio" name="print-range" value="custom"> Kustom</label>
+            </div>
+            <input type="text" id="print-page-range" placeholder="1-3,5" disabled class="text-field">
+          </div>
+          <div class="button-row">
+            <button class="btn btn-tonal" id="btn-print-preview">
+              <span class="material-icon">visibility</span> Preview
+            </button>
+            <button class="btn btn-filled" id="btn-print-now">
+              <span class="material-icon">print</span> Print Sekarang
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Bottom Navigation (Mobile) -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="bottom-nav-item active" data-view="viewer"><span class="material-icon">visibility</span><span>Viewer</span></button>
+    <button class="bottom-nav-item" data-view="export"><span class="material-icon">image</span><span>Export</span></button>
+    <button class="bottom-nav-item fab-slot"></button>
+    <button class="bottom-nav-item" data-view="utilities"><span class="material-icon">construction</span><span>Utilitas</span></button>
+    <button class="bottom-nav-item" data-view="print"><span class="material-icon">print</span><span>Print</span></button>
+  </nav>
+
+  <!-- Floating Action Button -->
+  <button class="fab" id="fab-open-file" title="Buka PDF" aria-label="Buka PDF">
+    <span class="material-icon">add</span>
+  </button>
+
+  <!-- Snackbar -->
+  <div class="snackbar" id="snackbar">
+    <span id="snackbar-message"></span>
+    <button class="snackbar-action" id="snackbar-action" hidden></button>
+  </div>
+
+  <!-- Print Preview Dialog -->
+  <div class="dialog-overlay" id="print-preview-overlay" hidden>
+    <div class="dialog print-preview-dialog">
+      <div class="dialog-header">
+        <h3>Preview Print</h3>
+        <button class="icon-btn" id="btn-close-print-preview"><span class="material-icon">close</span></button>
+      </div>
+      <div class="dialog-body" id="print-preview-body"></div>
+      <div class="dialog-actions">
+        <button class="btn btn-text" id="btn-cancel-print-preview">Batal</button>
+        <button class="btn btn-filled" id="btn-confirm-print">Print</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rearrange Pages Dialog -->
+  <div class="dialog-overlay" id="rearrange-overlay" hidden>
+    <div class="dialog rearrange-dialog">
+      <div class="dialog-header">
+        <h3>Susun Ulang Halaman</h3>
+        <button class="icon-btn" id="btn-close-rearrange"><span class="material-icon">close</span></button>
+      </div>
+      <div class="dialog-body">
+        <p class="panel-desc">Seret untuk mengubah urutan halaman.</p>
+        <div class="rearrange-grid" id="rearrange-grid"></div>
+      </div>
+      <div class="dialog-actions">
+        <button class="btn btn-text" id="btn-cancel-rearrange">Batal</button>
+        <button class="btn btn-filled" id="btn-apply-rearrange">Terapkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generic Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay" hidden>
+    <div class="spinner"></div>
+    <span id="loading-label">Memuat…</span>
+  </div>
+
+</div>
+
+<!-- ============ LIBRARIES ============ -->
+<!-- Loaded from CDN (cdnjs.cloudflare.com). To run fully offline, download these
+     three files into /libs and change the src attributes below to local paths
+     (see /libs/README.md for exact instructions). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+
+<!-- ============ APP MODULES (ES6, deferred, code-split) ============ -->
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
