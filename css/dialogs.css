@@ -1,0 +1,65 @@
+/* ==========================================================================
+   AXStudio — Dialog / Modal Styles
+   ========================================================================== */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.dialog {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-sys-shape-corner-lg);
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--md-sys-elevation-4);
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+.dialog-header h3 { margin: 0; }
+
+.dialog-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* Print preview specific */
+.print-preview-dialog { max-width: 720px; }
+#print-preview-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background: var(--md-sys-color-surface-variant);
+  padding: 20px;
+}
+.print-preview-page {
+  background: #fff;
+  box-shadow: var(--md-sys-elevation-2);
+}
+.print-preview-page img { display: block; max-width: 100%; }

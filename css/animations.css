@@ -1,0 +1,49 @@
+/* ==========================================================================
+   AXStudio — Animations
+   ========================================================================== */
+
+@keyframes splash-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes splash-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.view.active { animation: fade-in var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-standard); }
+
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.pdf-page-container { animation: slide-up 300ms var(--md-sys-motion-easing-standard); }
+
+/* Ripple effect helper class (added/removed via JS on click for MD3 feel) */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple-anim 500ms ease-out;
+  background: rgba(255,255,255,0.4);
+  pointer-events: none;
+}
+@keyframes ripple-anim {
+  to { transform: scale(3); opacity: 0; }
+}

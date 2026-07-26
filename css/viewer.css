@@ -1,0 +1,140 @@
+/* ==========================================================================
+   AXStudio — PDF Viewer Styles
+   ========================================================================== */
+
+.viewer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--md-sys-color-surface-container-low);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-right: 1px solid var(--md-sys-color-outline-variant);
+}
+.toolbar-group:last-child { border-right: none; }
+.zoom-label { font-size: 13px; min-width: 44px; text-align: center; color: var(--md-sys-color-on-surface-variant); }
+.page-nav { gap: 6px; font-size: 13px; color: var(--md-sys-color-on-surface-variant); }
+
+.viewer-canvas-wrap {
+  flex: 1;
+  overflow: auto;
+  background: var(--md-sys-color-surface-variant);
+  scroll-behavior: smooth;
+  padding: 24px 0;
+}
+[data-theme="dark"] .viewer-canvas-wrap { background: #0d0d0f; }
+
+.pdf-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.pdf-page-container {
+  position: relative;
+  background: #fff;
+  box-shadow: var(--md-sys-elevation-2);
+  transition: transform var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-standard);
+}
+.pdf-page-container canvas { display: block; }
+.pdf-page-container .text-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 1;
+  line-height: 1;
+}
+.pdf-page-container .text-layer span {
+  position: absolute;
+  color: transparent;
+  white-space: pre;
+  transform-origin: 0 0;
+}
+.pdf-page-container .text-layer span.search-highlight {
+  background: rgba(255, 213, 0, 0.5);
+  color: transparent;
+  border-radius: 2px;
+}
+.pdf-page-container .text-layer span.search-highlight.current {
+  background: rgba(255, 128, 0, 0.7);
+}
+.pdf-page-number-tag {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Thumbnails */
+.thumbnail-item {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--md-sys-shape-corner-sm);
+  border: 2px solid transparent;
+  transition: border-color 150ms;
+}
+.thumbnail-item:hover { background: var(--md-sys-color-surface-container-high); }
+.thumbnail-item.active { border-color: var(--md-sys-color-primary); }
+.thumbnail-item canvas {
+  box-shadow: var(--md-sys-elevation-1);
+  max-width: 100%;
+}
+.thumbnail-item .thumb-label { font-size: 11px; color: var(--md-sys-color-on-surface-variant); }
+
+/* Search bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--md-sys-color-surface-container);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  flex-shrink: 0;
+}
+.search-bar input {
+  flex: 1;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+}
+.search-count { font-size: 12px; color: var(--md-sys-color-on-surface-variant); white-space: nowrap; }
+
+/* Rearrange grid (drag & drop reorder) */
+.rearrange-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 14px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 4px;
+}
+.rearrange-item {
+  cursor: grab;
+  background: var(--md-sys-color-surface-container-low);
+  border: 2px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-sm);
+  padding: 6px;
+  text-align: center;
+  user-select: none;
+}
+.rearrange-item.dragging { opacity: 0.4; }
+.rearrange-item.drag-over { border-color: var(--md-sys-color-primary); }
+.rearrange-item canvas { max-width: 100%; box-shadow: var(--md-sys-elevation-1); }
+.rearrange-item span { display: block; font-size: 11px; margin-top: 4px; color: var(--md-sys-color-on-surface-variant); }
