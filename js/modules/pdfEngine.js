@@ -16,7 +16,7 @@
 // PDF.js worker configuration (must run once, before any getDocument call).
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 }
 
 /** @type {import('pdfjs-dist').PDFDocumentProxy | null} */
