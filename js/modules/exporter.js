@@ -3,14 +3,16 @@
  * Converts PDF pages into raster images (PNG/JPG) with configurable
  * resolution scale and JPG quality, then packages them for download.
  *
- * For a single page, downloads the image directly.
- * For multiple pages, downloads each as a separate file in quick succession
- * (avoids needing an extra zip dependency, keeping the "no framework / lean
- * deps" requirement while still giving the user every requested page).
+ * - Single page selected  -> downloads that one image directly, named by
+ *   its page number (e.g. "3.png").
+ * - Multiple pages selected -> bundles all images into a single ZIP file
+ *   (built with the dependency-free zipWriter.js), with each entry named
+ *   by its page number (e.g. "1.png", "2.png", "3.png").
  */
 
 import { getCurrentDoc } from './pdfEngine.js';
-import { downloadBlob, sleep } from './utils.js';
+import { downloadBlob } from './utils.js';
+import { ZipWriter } from './zipWriter.js';
 
 /**
  * Render a single PDF page to a canvas at a given scale.
@@ -38,8 +40,17 @@ function canvasToBlob(canvas, format, quality) {
   });
 }
 
+/** Convert a canvas to raw bytes (Uint8Array) for zipping. */
+async function canvasToBytes(canvas, format, quality) {
+  const blob = await canvasToBlob(canvas, format, quality);
+  const buffer = await blob.arrayBuffer();
+  return new Uint8Array(buffer);
+}
+
 /**
- * Export the given page numbers as images.
+ * Export the given page numbers as images. Single page -> direct download.
+ * Multiple pages -> a single ZIP download containing one image per page,
+ * each file named after its page number (e.g. "1.png").
  * @param {number[]} pageNumbers 1-based page numbers
  * @param {{format:'png'|'jpg', quality:number, scale:number, baseName:string}} options
  * @param {(done:number, total:number)=>void} onProgress
@@ -47,21 +58,33 @@ function canvasToBlob(canvas, format, quality) {
 export async function exportPagesAsImages(pageNumbers, options, onProgress) {
   const { format, quality, scale, baseName } = options;
   const total = pageNumbers.length;
+  const ext = format === 'jpg' ? 'jpg' : 'png';
 
+  if (total === 1) {
+    const canvas = await renderPageToCanvas(pageNumbers[0], scale);
+    const blob = await canvasToBlob(canvas, format, quality);
+    downloadBlob(blob, `${pageNumbers[0]}.${ext}`);
+    if (onProgress) onProgress(1, 1);
+    return;
+  }
+
+  const zip = new ZipWriter();
   for (let i = 0; i < total; i++) {
     const pageNum = pageNumbers[i];
     const canvas = await renderPageToCanvas(pageNum, scale);
-    const blob = await canvasToBlob(canvas, format, quality);
-    const ext = format === 'jpg' ? 'jpg' : 'png';
-    downloadBlob(blob, `${baseName}_page${pageNum}.${ext}`);
+    const bytes = await canvasToBytes(canvas, format, quality);
+    zip.addFile(`${pageNum}.${ext}`, bytes);
     if (onProgress) onProgress(i + 1, total);
-    // small delay so browsers don't block rapid-fire downloads as popups
-    await sleep(180);
   }
+
+  const zipBlob = await zip.generateBlob();
+  const safeName = (baseName || 'AXStudio').replace(/[\\/:*?"<>|]/g, '_');
+  downloadBlob(zipBlob, `${safeName}_images.zip`);
 }
 
 /**
- * Render a single page to a data URL — used by the Print module for previews.
+ * Render a single page to a data URL — used by the Print module for previews
+ * and by the Export panel's live page-range preview.
  * @param {number} pageNum
  * @param {number} scale
  * @returns {Promise<string>}
@@ -69,4 +92,20 @@ export async function exportPagesAsImages(pageNumbers, options, onProgress) {
 export async function renderPageToDataUrl(pageNum, scale = 2) {
   const canvas = await renderPageToCanvas(pageNum, scale);
   return canvas.toDataURL('image/png');
+}
+
+/**
+ * Render lightweight preview thumbnails for a set of pages (used by the
+ * Export panel to show the user which pages their range/number resolves to).
+ * @param {number[]} pageNumbers
+ * @param {number} [scale=0.6] small scale keeps this fast even for many pages
+ * @returns {Promise<{page:number, dataUrl:string}[]>}
+ */
+export async function renderExportPreview(pageNumbers, scale = 0.6) {
+  const results = [];
+  for (const pageNum of pageNumbers) {
+    const dataUrl = await renderPageToDataUrl(pageNum, scale);
+    results.push({ page: pageNum, dataUrl });
+  }
+  return results;
 }

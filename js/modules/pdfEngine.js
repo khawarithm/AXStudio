@@ -101,11 +101,20 @@ export async function renderPage(pageNum, canvas, textLayerContainer, scaleOverr
   const rotation = rotationOverride ?? viewState.rotation;
   const viewport = page.getViewport({ scale, rotation });
 
-  const context = canvas.getContext('2d');
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
+  // Render at a higher physical pixel density than the CSS size so pages
+  // stay crisp ("HD") on high-DPI screens and at 100% zoom, instead of
+  // looking blurry/pixelated. The canvas's CSS box stays at the logical
+  // viewport size; only the backing pixel buffer is scaled up.
+  const outputScale = Math.max(window.devicePixelRatio || 1, 2);
 
-  await page.render({ canvasContext: context, viewport }).promise;
+  const context = canvas.getContext('2d');
+  canvas.width = Math.floor(viewport.width * outputScale);
+  canvas.height = Math.floor(viewport.height * outputScale);
+  canvas.style.width = `${Math.floor(viewport.width)}px`;
+  canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+  const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+  await page.render({ canvasContext: context, viewport, transform }).promise;
 
   if (textLayerContainer) {
     textLayerContainer.innerHTML = '';
