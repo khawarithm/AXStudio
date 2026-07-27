@@ -18,12 +18,14 @@ import { qs } from './modules/utils.js';
 import { showSnackbar } from './modules/notifications.js';
 
 import { wireNavigation, switchView } from './components/navigation.js';
-import { wireFileLoader } from './components/fileLoader.js';
+import { wireFileLoader, setOnFileLoaded } from './components/fileLoader.js';
 import { wireViewerToolbar } from './components/viewerController.js';
-import { wireExportPanel } from './components/exportPanel.js';
+import { wireExportPanel, refreshExportPreviewOnLoad } from './components/exportPanel.js';
 import { wireExtractPanel } from './components/extractPanel.js';
 import { wireUtilitiesPanel } from './components/utilitiesPanel.js';
 import { wirePrintPanel } from './components/printPanel.js';
+import { wireMakerPanel } from './components/makerPanel.js';
+import { wireEditorPanel, refreshEditorPageCount } from './components/editorPanel.js';
 
 function init() {
   initTheme();
@@ -35,6 +37,13 @@ function init() {
   wireExtractPanel();
   wireUtilitiesPanel();
   wirePrintPanel();
+  wireMakerPanel();
+  wireEditorPanel();
+
+  setOnFileLoaded(() => {
+    refreshEditorPageCount();
+    refreshExportPreviewOnLoad();
+  });
 
   qs('#btn-theme-toggle').addEventListener('click', toggleTheme);
 
