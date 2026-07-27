@@ -12,7 +12,7 @@
  * pick up the new assets.
  */
 
-const CACHE_VERSION = 'axstudio-v1.0.0';
+const CACHE_VERSION = 'axstudio-v1.1.0';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -26,6 +26,8 @@ const PRECACHE_ASSETS = [
   '/css/components.css',
   '/css/viewer.css',
   '/css/dialogs.css',
+  '/css/maker.css',
+  '/css/editor.css',
   '/css/animations.css',
   '/js/app.js',
   '/js/modules/utils.js',
@@ -37,6 +39,9 @@ const PRECACHE_ASSETS = [
   '/js/modules/textExtractor.js',
   '/js/modules/pdfUtilities.js',
   '/js/modules/printManager.js',
+  '/js/modules/pdfMaker.js',
+  '/js/modules/pdfEditor.js',
+  '/js/modules/zipWriter.js',
   '/js/components/viewerController.js',
   '/js/components/fileLoader.js',
   '/js/components/navigation.js',
@@ -44,6 +49,8 @@ const PRECACHE_ASSETS = [
   '/js/components/extractPanel.js',
   '/js/components/utilitiesPanel.js',
   '/js/components/printPanel.js',
+  '/js/components/makerPanel.js',
+  '/js/components/editorPanel.js',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png',
   '/assets/icons/favicon-32.png',

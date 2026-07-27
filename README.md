@@ -47,14 +47,19 @@ axstudio/
 │   ├── components.css        # Buttons, forms, cards, snackbar, dsb.
 │   ├── viewer.css            # PDF viewer, thumbnail, search bar
 │   ├── dialogs.css           # Modal/dialog styling
+│   ├── maker.css             # PDF Maker & preview strip styling
+│   ├── editor.css            # Edit PDF canvas/toolbar styling
 │   └── animations.css        # Keyframes & transitions
 ├── js/
 │   ├── app.js                # Composition root — bootstrap semua modul
 │   ├── modules/               # Logika murni, tidak terikat DOM
 │   │   ├── pdfEngine.js        # Wrapper PDF.js: render, zoom, rotate, search
-│   │   ├── exporter.js         # Export halaman ke PNG/JPG
+│   │   ├── exporter.js         # Export halaman ke PNG/JPG (+ bundling ZIP)
 │   │   ├── textExtractor.js    # Extract teks native + OCR (Tesseract.js)
 │   │   ├── pdfUtilities.js     # Merge/split/rotate/delete/compress/dst (pdf-lib)
+│   │   ├── pdfMaker.js         # Buat PDF baru dari teks / gambar (pdf-lib)
+│   │   ├── pdfEditor.js        # Bake anotasi canvas ke halaman PDF (pdf-lib)
+│   │   ├── zipWriter.js        # ZIP writer ringan (dipakai export gambar & DOCX)
 │   │   ├── printManager.js     # System print, Bluetooth, USB/OTG printer
 │   │   ├── bookmarks.js        # Simpan halaman terakhir & bookmark
 │   │   ├── theme.js            # Light/Dark mode
@@ -67,7 +72,9 @@ axstudio/
 │       ├── exportPanel.js
 │       ├── extractPanel.js
 │       ├── utilitiesPanel.js
-│       └── printPanel.js
+│       ├── printPanel.js
+│       ├── makerPanel.js        # UI "Buat PDF"
+│       └── editorPanel.js       # UI "Edit PDF"
 ├── libs/
 │   └── README.md             # Cara switch dari CDN ke library lokal (offline penuh)
 └── assets/icons/              # Semua ukuran ikon PWA + favicon
@@ -76,15 +83,25 @@ axstudio/
 ## Fitur
 
 - **PDF Viewer**: import (file picker/drag&drop), zoom, rotate, scroll halus,
-  thumbnail, cari teks, bookmark halaman terakhir, dark mode.
+  thumbnail, cari teks, bookmark halaman terakhir, dark mode, render HD
+  (mengikuti device pixel ratio, tajam meski tanpa zoom).
+- **Buat PDF**: buat dokumen baru dari teks (word-wrap & pagination otomatis)
+  atau dari kumpulan gambar (urutan bisa diatur drag & drop), lengkap dengan
+  preview hasil sebelum diunduh atau dibuka di Viewer.
+- **Edit PDF**: tambahkan teks, gambar bebas (pen), kotak, elips, atau sisipan
+  gambar langsung di atas halaman PDF, lalu terapkan permanen ke dokumen.
 - **Export**: semua halaman / halaman tertentu ke PNG atau JPG, kualitas &
-  skala resolusi dapat diatur.
+  skala resolusi dapat diatur, preview halaman terpilih tampil otomatis saat
+  mengetik nomor/rentang halaman. Saat lebih dari satu halaman diexport,
+  hasil dibundel jadi satu file ZIP dengan setiap gambar dinamai sesuai nomor
+  halamannya (mis. "1.png", "2.png").
 - **Extract Text**: ekstraksi teks native, OCR (Tesseract.js) untuk PDF hasil
   scan, copy ke clipboard, export TXT & DOCX.
-- **Printing**: preview sebelum cetak, ukuran kertas (A4/A5/Letter/Thermal
-  58mm/80mm), margin, orientasi, print sistem (juga jalur yang dipakai
-  Android Print API lewat dialog cetak browser), printer Bluetooth (Web
-  Bluetooth API), printer USB/USB-OTG (WebUSB API).
+- **Printing**: preview sebelum cetak, cetak dari dokumen PDF aktif *atau*
+  dari gambar PNG/JPG yang diupload langsung, ukuran kertas (A4/A5/Letter/
+  Thermal 58mm/80mm), margin, orientasi, print sistem (juga jalur yang
+  dipakai Android Print API lewat dialog cetak browser), printer Bluetooth
+  (Web Bluetooth API), printer USB/USB-OTG (WebUSB API).
 - **PDF Utilities**: merge, split, rotate halaman, delete halaman, rearrange
   (drag & drop), compress, watermark teks, password protect.
 - **PWA**: manifest, service worker, mode offline, installable, splash

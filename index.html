@@ -17,6 +17,8 @@
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/viewer.css">
 <link rel="stylesheet" href="css/dialogs.css">
+<link rel="stylesheet" href="css/maker.css">
+<link rel="stylesheet" href="css/editor.css">
 <link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
@@ -69,6 +71,8 @@
       </div>
       <ul class="sidebar-nav">
         <li><button class="nav-item active" data-view="viewer"><span class="material-icon">visibility</span><span>Viewer</span></button></li>
+        <li><button class="nav-item" data-view="maker"><span class="material-icon">note_add</span><span>Buat PDF</span></button></li>
+        <li><button class="nav-item" data-view="editor"><span class="material-icon">edit_document</span><span>Edit PDF</span></button></li>
         <li><button class="nav-item" data-view="export"><span class="material-icon">image</span><span>Export</span></button></li>
         <li><button class="nav-item" data-view="extract"><span class="material-icon">text_snippet</span><span>Extract Teks</span></button></li>
         <li><button class="nav-item" data-view="utilities"><span class="material-icon">construction</span><span>Utilitas PDF</span></button></li>
@@ -136,6 +140,117 @@
         </div>
       </section>
 
+      <!-- View: PDF Maker -->
+      <section class="view" id="view-maker">
+        <div class="panel">
+          <h2>Buat PDF</h2>
+          <p class="panel-desc">Buat dokumen PDF baru dari teks atau dari kumpulan gambar.</p>
+
+          <div class="form-row">
+            <label>Sumber</label>
+            <div class="segmented" id="maker-mode">
+              <button class="segment active" data-value="text">Dari Teks</button>
+              <button class="segment" data-value="image">Dari Gambar</button>
+            </div>
+          </div>
+
+          <!-- Text mode -->
+          <div id="maker-text-panel">
+            <div class="form-row">
+              <label>Isi Teks</label>
+              <textarea id="maker-text-input" class="text-field maker-textarea" placeholder="Ketik atau tempel teks di sini…" rows="10"></textarea>
+            </div>
+            <div class="form-row">
+              <label>Ukuran Kertas</label>
+              <select id="maker-text-pagesize" class="text-field">
+                <option value="a4">A4</option>
+                <option value="a5">A5</option>
+                <option value="letter">Letter</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Ukuran Font <span id="maker-fontsize-val">12pt</span></label>
+              <input type="range" id="maker-fontsize" min="8" max="24" value="12">
+            </div>
+          </div>
+
+          <!-- Image mode -->
+          <div id="maker-image-panel" hidden>
+            <div class="form-row">
+              <label>Gambar</label>
+              <input type="file" id="maker-image-input" accept="image/png,image/jpeg" multiple hidden>
+              <button class="btn btn-tonal" id="btn-maker-add-images"><span class="material-icon">add_photo_alternate</span> Tambah Gambar</button>
+            </div>
+            <div class="rearrange-grid" id="maker-image-grid"></div>
+            <div class="form-row">
+              <label>Ukuran Halaman</label>
+              <select id="maker-image-pagesize" class="text-field">
+                <option value="original">Sesuai Ukuran Gambar</option>
+                <option value="a4">A4</option>
+                <option value="a5">A5</option>
+                <option value="letter">Letter</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-filled" id="btn-maker-generate">
+            <span class="material-icon">picture_as_pdf</span> Buat PDF
+          </button>
+          <div class="progress-inline" id="maker-progress" hidden>
+            <div class="linear-progress"><div class="linear-progress-bar"></div></div>
+            <span id="maker-progress-label">Memproses…</span>
+          </div>
+
+          <!-- Result preview -->
+          <div class="maker-result" id="maker-result" hidden>
+            <label class="preview-label">Preview Hasil</label>
+            <div class="maker-preview-strip" id="maker-preview-strip"></div>
+            <div class="button-row">
+              <button class="btn btn-tonal" id="btn-maker-download"><span class="material-icon">download</span> Unduh PDF</button>
+              <button class="btn btn-filled" id="btn-maker-open-viewer"><span class="material-icon">visibility</span> Buka di Viewer</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Edit PDF -->
+      <section class="view" id="view-editor">
+        <div class="editor-toolbar">
+          <div class="toolbar-group page-nav">
+            <span>Halaman</span>
+            <input type="number" id="editor-page-input" min="1" value="1" class="page-input">
+            <span>/ <span id="editor-page-count">0</span></span>
+            <button class="btn btn-tonal small-btn" id="btn-editor-load-page">Muat</button>
+          </div>
+          <div class="toolbar-group" id="editor-tools">
+            <button class="icon-btn tool-btn active" data-tool="text" title="Teks"><span class="material-icon">title</span></button>
+            <button class="icon-btn tool-btn" data-tool="draw" title="Gambar Bebas"><span class="material-icon">draw</span></button>
+            <button class="icon-btn tool-btn" data-tool="rect" title="Kotak"><span class="material-icon">crop_square</span></button>
+            <button class="icon-btn tool-btn" data-tool="ellipse" title="Elips"><span class="material-icon">circle</span></button>
+            <button class="icon-btn tool-btn" data-tool="image" title="Sisipkan Gambar"><span class="material-icon">add_photo_alternate</span></button>
+          </div>
+          <div class="toolbar-group">
+            <input type="color" id="editor-color" value="#e53935" title="Warna">
+            <input type="range" id="editor-size" min="1" max="40" value="4" title="Ukuran/Ketebalan">
+          </div>
+          <div class="toolbar-group">
+            <button class="icon-btn" id="btn-editor-undo" title="Undo"><span class="material-icon">undo</span></button>
+            <button class="icon-btn" id="btn-editor-clear" title="Hapus Semua"><span class="material-icon">delete_sweep</span></button>
+          </div>
+          <button class="btn btn-filled" id="btn-editor-apply">
+            <span class="material-icon">save</span> Terapkan ke Halaman
+          </button>
+        </div>
+        <input type="file" id="editor-image-input" accept="image/png,image/jpeg" hidden>
+        <div class="editor-canvas-wrap" id="editor-canvas-wrap">
+          <div class="editor-stage" id="editor-stage">
+            <img id="editor-bg-image" alt="Halaman PDF">
+            <canvas id="editor-canvas"></canvas>
+            <input type="text" id="editor-text-input" class="editor-text-input" hidden>
+          </div>
+        </div>
+      </section>
+
       <!-- View: Export -->
       <section class="view" id="view-export">
         <div class="panel">
@@ -163,6 +278,10 @@
               <label class="radio"><input type="radio" name="export-range" value="custom"> Kustom (mis. 1-3,5)</label>
             </div>
             <input type="text" id="export-page-range" placeholder="1-3,5,7" disabled class="text-field">
+          </div>
+          <div class="export-preview" id="export-preview" hidden>
+            <label class="preview-label">Preview Halaman Terpilih</label>
+            <div class="export-preview-strip" id="export-preview-strip"></div>
           </div>
           <button class="btn btn-filled" id="btn-export-images">
             <span class="material-icon">download</span> Export Gambar
@@ -302,6 +421,19 @@
         <div class="panel">
           <h2>Print</h2>
           <div class="form-row">
+            <label>Sumber</label>
+            <div class="segmented" id="print-source">
+              <button class="segment active" data-value="document">Dokumen PDF Aktif</button>
+              <button class="segment" data-value="image">Gambar (PNG/JPG)</button>
+            </div>
+          </div>
+          <div class="form-row" id="print-image-row" hidden>
+            <label>Pilih Gambar</label>
+            <input type="file" id="print-image-input" accept="image/png,image/jpeg" multiple hidden>
+            <button class="btn btn-tonal" id="btn-print-add-images"><span class="material-icon">add_photo_alternate</span> Tambah Gambar</button>
+            <div class="print-image-list" id="print-image-list"></div>
+          </div>
+          <div class="form-row">
             <label>Ukuran Kertas</label>
             <select id="print-paper-size" class="text-field">
               <option value="a4">A4 (210 × 297 mm)</option>
@@ -330,7 +462,7 @@
               <option value="usb">USB OTG Printer</option>
             </select>
           </div>
-          <div class="form-row">
+          <div class="form-row" id="print-range-row">
             <label>Halaman</label>
             <div class="radio-group">
               <label class="radio"><input type="radio" name="print-range" value="all" checked> Semua Halaman</label>
