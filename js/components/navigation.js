@@ -10,6 +10,8 @@ import { showSnackbar } from '../modules/notifications.js';
 
 const VIEW_TITLES = {
   viewer: null, // uses doc name instead
+  maker: 'Buat PDF',
+  editor: 'Edit PDF',
   export: 'Export ke Gambar',
   extract: 'Ekstrak Teks',
   utilities: 'Utilitas PDF',
@@ -19,7 +21,7 @@ const VIEW_TITLES = {
 let currentView = 'viewer';
 
 export function switchView(viewName) {
-  const requiresDoc = ['viewer', 'export', 'extract', 'utilities', 'print'];
+  const requiresDoc = ['viewer', 'editor', 'export', 'extract', 'utilities'];
   if (requiresDoc.includes(viewName) && !getCurrentDoc()) {
     showSnackbar('Buka file PDF terlebih dahulu.');
     viewName = 'viewer';
