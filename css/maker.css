@@ -1,0 +1,117 @@
+/* ==========================================================================
+   AXStudio — PDF Maker & Preview Strip Styles
+   (also covers the Export panel's live page-range preview, and the Print
+   panel's uploaded-image list)
+   ========================================================================== */
+
+.maker-textarea {
+  height: auto;
+  min-height: 220px;
+  padding: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+}
+
+.preview-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-bottom: 8px;
+}
+
+/* Shared horizontal preview strip (Export panel + Maker result) */
+.export-preview,
+.maker-result {
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
+.export-preview-strip,
+.maker-preview-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 4px 12px 4px;
+}
+
+.export-preview-strip .preview-thumb,
+.maker-preview-strip .preview-thumb {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.export-preview-strip img,
+.maker-preview-strip img {
+  height: 160px;
+  width: auto;
+  border-radius: var(--md-sys-shape-corner-sm);
+  box-shadow: var(--md-sys-elevation-1);
+  background: #fff;
+}
+
+.preview-thumb .preview-thumb-label {
+  font-size: 11px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Maker image mode: reuses .rearrange-grid / .rearrange-item from viewer.css,
+   with a remove button added on top of each thumbnail. */
+.rearrange-item {
+  position: relative;
+}
+.rearrange-item .remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--md-sys-elevation-1);
+}
+.rearrange-item .remove-image-btn .material-icon { font-size: 16px; }
+
+/* Print panel: uploaded image list */
+.print-image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.print-image-list .print-image-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  border-radius: var(--md-sys-shape-corner-full);
+  padding: 6px 10px 6px 6px;
+  font-size: 12px;
+}
+.print-image-list .print-image-chip img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.print-image-list .print-image-chip button {
+  display: flex;
+  align-items: center;
+}
+.print-image-list .print-image-chip .material-icon { font-size: 16px; }
+
+.small-btn {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 12px;
+}
