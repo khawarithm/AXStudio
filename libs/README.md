@@ -5,9 +5,24 @@ app works immediately with zero setup:
 
 | Library      | CDN URL used in index.html                                                         | Used for                     |
 |--------------|--------------------------------------------------------------------------------------|-------------------------------|
-| PDF.js       | `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js`                   | Rendering & parsing PDF       |
+| PDF.js       | `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js`                  | Rendering & parsing PDF       |
 | pdf-lib      | `https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js`               | Merge/split/rotate/watermark  |
-| Tesseract.js | `https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js`         | OCR on scanned PDFs           |
+| Tesseract.js | `https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js`              | OCR on scanned PDFs           |
+
+> **Catatan CDN Tesseract.js:** dimuat dari **jsDelivr**, bukan cdnjs.
+> cdnjs hanya meng-host Tesseract.js versi sangat lama (0.1.1) yang API-nya
+> sudah tidak kompatibel dengan `createWorker()` versi modern yang dipakai
+> di `js/modules/textExtractor.js`. jsDelivr menyediakan build v5 lengkap
+> dengan UMD global `window.Tesseract`.
+
+> **Catatan versi PDF.js:** sengaja dikunci di `3.11.174`, bukan versi 4.x.
+> Sejak PDF.js 4.0, cdnjs hanya menyediakan build ES Module (`pdf.mjs`) dan
+> tidak lagi menyediakan `pdf.min.js` classic-script yang dibutuhkan oleh
+> tag `<script src="...">` biasa (non-`type="module"`) yang dipakai di
+> `index.html`. Versi `3.11.174` adalah rilis terakhir yang masih
+> menyediakan build UMD/classic (`pdf.min.js` + `pdf.worker.min.js`) dan
+> API-nya 100% kompatibel dengan kode di `js/modules/pdfEngine.js`. Jangan
+> upgrade ke 4.x tanpa mengubah seluruh loading strategy ke ES modules.
 
 ## Running 100% offline (no CDN)
 
