@@ -17,6 +17,10 @@ export function wirePrintPanel() {
   wireSourceMode();
   wireImagePicker();
 
+  qs('#print-method').addEventListener('change', (e) => {
+    qs('#print-method-hint').hidden = e.target.value === 'system';
+  });
+
   qs('#print-margin').addEventListener('input', (e) => {
     qs('#print-margin-val').textContent = `${e.target.value}mm`;
   });
@@ -188,11 +192,11 @@ async function dispatchPrint(dataUrls) {
     switch (settings.method) {
       case 'bluetooth':
         setLoading(true, 'Menghubungkan ke printer Bluetooth…');
-        await printViaBluetooth(dataUrls);
+        await printViaBluetooth(dataUrls, settings.paperSize);
         break;
       case 'usb':
         setLoading(true, 'Menghubungkan ke printer USB…');
-        await printViaUsb(dataUrls);
+        await printViaUsb(dataUrls, settings.paperSize);
         break;
       default:
         printViaSystem(dataUrls, settings);

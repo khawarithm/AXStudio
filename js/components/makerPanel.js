@@ -38,7 +38,12 @@ function wireModeToggle() {
   });
 
   qs('#maker-fontsize').addEventListener('input', (e) => {
-    qs('#maker-fontsize-val').textContent = `${e.target.value}pt`;
+    const px = e.target.value;
+    qs('#maker-fontsize-val').textContent = `${px}pt`;
+    const sample = qs('#maker-fontsize-sample');
+    // pt -> px is an approximation (1pt ≈ 1.333px) purely for the on-screen
+    // sample; the actual generated PDF always uses the exact pt value.
+    sample.style.fontSize = `${Math.round(px * 1.333)}px`;
   });
 }
 
