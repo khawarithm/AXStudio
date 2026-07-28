@@ -9,9 +9,16 @@
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib || {};
 
+/** Maps the editor's font-family keys to pdf-lib StandardFonts (normal + bold variants). */
+const FONT_MAP = {
+  helvetica: { normal: StandardFonts?.Helvetica, bold: StandardFonts?.HelveticaBold },
+  times: { normal: StandardFonts?.TimesRoman, bold: StandardFonts?.TimesRomanBold },
+  courier: { normal: StandardFonts?.Courier, bold: StandardFonts?.CourierBold },
+};
+
 /** Convert a "#rrggbb" hex color string into a pdf-lib rgb() color. */
 export function hexToRgb(hex) {
-  const clean = hex.replace('#', '');
+  const clean = (hex || '#000000').replace('#', '');
   const r = parseInt(clean.substring(0, 2), 16) / 255;
   const g = parseInt(clean.substring(2, 4), 16) / 255;
   const b = parseInt(clean.substring(4, 6), 16) / 255;
@@ -19,27 +26,42 @@ export function hexToRgb(hex) {
 }
 
 /**
- * Apply a list of annotation elements (created in canvas/CSS-pixel space)
- * onto a single page of the given PDF, then return the mutated document's
- * bytes.
- *
- * @param {ArrayBuffer} buffer original PDF bytes
- * @param {number} pageNum 1-based page index to edit
- * @param {number} canvasCssWidth width (in CSS px) the editor canvas was displayed at
- * @param {number} canvasCssHeight height (in CSS px) the editor canvas was displayed at
- * @param {Array<object>} elements annotation elements, see editorPanel.js for shapes
- * @returns {Promise<Uint8Array>}
+ * Embed every font/weight combination the editor can produce, once per
+ * document, and return a small lookup helper. Embedding is cheap for
+ * StandardFonts (no font file to parse), so doing all 6 upfront is fine.
+ * @param {import('pdf-lib').PDFDocument} doc
  */
-export async function applyEditsToPage(buffer, pageNum, canvasCssWidth, canvasCssHeight, elements) {
-  const doc = await PDFDocument.load(buffer);
-  const page = doc.getPages()[pageNum - 1];
-  if (!page) throw new Error('Halaman tidak ditemukan.');
+export async function buildFontCache(doc) {
+  const cache = {};
+  for (const family of Object.keys(FONT_MAP)) {
+    cache[family] = {
+      normal: await doc.embedFont(FONT_MAP[family].normal),
+      bold: await doc.embedFont(FONT_MAP[family].bold),
+    };
+  }
+  return cache;
+}
 
+function getFont(cache, family, bold) {
+  const entry = cache[family] || cache.helvetica;
+  return bold ? entry.bold : entry.normal;
+}
+
+/**
+ * Draw a full list of annotation elements (created in canvas/CSS-pixel
+ * space) onto a single pdf-lib page, given the CSS size the editor canvas
+ * was displayed at (for coordinate scaling).
+ * @param {import('pdf-lib').PDFPage} page
+ * @param {Array<object>} elements
+ * @param {number} canvasCssWidth
+ * @param {number} canvasCssHeight
+ * @param {object} fontCache result of buildFontCache()
+ */
+export function drawElementsOnPage(page, elements, canvasCssWidth, canvasCssHeight, fontCache) {
   const { width: pdfWidth, height: pdfHeight } = page.getSize();
   const scaleX = pdfWidth / canvasCssWidth;
   const scaleY = pdfHeight / canvasCssHeight;
-
-  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const avgScale = (scaleX + scaleY) / 2;
 
   // Canvas Y grows downward; PDF Y grows upward. Flip accordingly.
   const toPdfX = (x) => x * scaleX;
@@ -48,18 +70,28 @@ export async function applyEditsToPage(buffer, pageNum, canvasCssWidth, canvasCs
   for (const el of elements) {
     switch (el.type) {
       case 'text': {
-        const pdfFontSize = el.fontSize * ((scaleX + scaleY) / 2);
-        page.drawText(el.text, {
-          x: toPdfX(el.x),
-          y: toPdfY(el.y) - pdfFontSize,
-          size: pdfFontSize,
-          font,
-          color: hexToRgb(el.color),
-        });
+        const pdfFontSize = el.fontSize * avgScale;
+        const font = getFont(fontCache, el.fontFamily || 'helvetica', !!el.bold);
+        const color = hexToRgb(el.color);
+        const x = toPdfX(el.x);
+        const y = toPdfY(el.y) - pdfFontSize;
+
+        page.drawText(el.text, { x, y, size: pdfFontSize, font, color });
+
+        if (el.underline) {
+          const textWidth = font.widthOfTextAtSize(el.text, pdfFontSize);
+          const underlineY = y - pdfFontSize * 0.08;
+          page.drawLine({
+            start: { x, y: underlineY },
+            end: { x: x + textWidth, y: underlineY },
+            thickness: Math.max(0.6, pdfFontSize * 0.05),
+            color,
+          });
+        }
         break;
       }
       case 'draw': {
-        const width = Math.max(0.5, el.lineWidth * ((scaleX + scaleY) / 2));
+        const width = Math.max(0.5, el.lineWidth * avgScale);
         for (let i = 1; i < el.points.length; i++) {
           const a = el.points[i - 1];
           const b = el.points[i];
@@ -83,7 +115,7 @@ export async function applyEditsToPage(buffer, pageNum, canvasCssWidth, canvasCs
           width: w,
           height: h,
           borderColor: hexToRgb(el.color),
-          borderWidth: Math.max(0.5, el.lineWidth * ((scaleX + scaleY) / 2)),
+          borderWidth: Math.max(0.5, el.lineWidth * avgScale),
         });
         break;
       }
@@ -98,30 +130,29 @@ export async function applyEditsToPage(buffer, pageNum, canvasCssWidth, canvasCs
           xScale,
           yScale,
           borderColor: hexToRgb(el.color),
-          borderWidth: Math.max(0.5, el.lineWidth * ((scaleX + scaleY) / 2)),
+          borderWidth: Math.max(0.5, el.lineWidth * avgScale),
         });
         break;
       }
       case 'image': {
-        const isPng = el.mimeType === 'image/png';
-        const bytes = dataUrlToBytes(el.dataUrl);
-        const embedded = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
-        const w = el.width * scaleX;
-        const h = el.height * scaleY;
-        page.drawImage(embedded, {
-          x: toPdfX(el.x),
-          y: toPdfY(el.y) - h,
-          width: w,
-          height: h,
-        });
+        // Images are embedded asynchronously elsewhere (applyEditsToPage),
+        // this synchronous drawing pass expects el.__embedded to already be set.
+        if (el.__embedded) {
+          const w = el.width * scaleX;
+          const h = el.height * scaleY;
+          page.drawImage(el.__embedded, {
+            x: toPdfX(el.x),
+            y: toPdfY(el.y) - h,
+            width: w,
+            height: h,
+          });
+        }
         break;
       }
       default:
         break;
     }
   }
-
-  return doc.save();
 }
 
 function dataUrlToBytes(dataUrl) {
@@ -130,4 +161,38 @@ function dataUrlToBytes(dataUrl) {
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes;
+}
+
+/**
+ * Apply a list of annotation elements (created in canvas/CSS-pixel space)
+ * onto a single page of the given PDF, then return the mutated document's
+ * bytes.
+ *
+ * @param {ArrayBuffer} buffer original PDF bytes
+ * @param {number} pageNum 1-based page index to edit
+ * @param {number} canvasCssWidth width (in CSS px) the editor canvas was displayed at
+ * @param {number} canvasCssHeight height (in CSS px) the editor canvas was displayed at
+ * @param {Array<object>} elements annotation elements, see editorPanel.js for shapes
+ * @returns {Promise<Uint8Array>}
+ */
+export async function applyEditsToPage(buffer, pageNum, canvasCssWidth, canvasCssHeight, elements) {
+  const doc = await PDFDocument.load(buffer);
+  const page = doc.getPages()[pageNum - 1];
+  if (!page) throw new Error('Halaman tidak ditemukan.');
+
+  const fontCache = await buildFontCache(doc);
+
+  // Pre-embed any image elements (async), storing the embedded image object
+  // directly on the element so drawElementsOnPage can stay synchronous.
+  for (const el of elements) {
+    if (el.type === 'image' && !el.__embedded) {
+      const isPng = el.mimeType === 'image/png';
+      const bytes = dataUrlToBytes(el.dataUrl);
+      el.__embedded = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+    }
+  }
+
+  drawElementsOnPage(page, elements, canvasCssWidth, canvasCssHeight, fontCache);
+
+  return doc.save();
 }
