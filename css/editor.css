@@ -18,6 +18,53 @@
   color: var(--md-sys-color-on-secondary-container);
 }
 
+.toggle-btn.active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.small-select {
+  height: 36px;
+  width: auto;
+  min-width: 110px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.editor-context-toolbar {
+  background: var(--md-sys-color-secondary-container);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+.editor-context-toolbar .context-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-secondary-container);
+  margin-right: 4px;
+}
+.editor-context-toolbar label {
+  font-size: 12px;
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.nudge-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(2, 32px);
+  gap: 2px;
+}
+.nudge-pad #editor-nudge-up { grid-column: 2; grid-row: 1; }
+.nudge-pad #editor-nudge-left { grid-column: 1; grid-row: 2; }
+.nudge-pad #editor-nudge-right { grid-column: 3; grid-row: 2; }
+.nudge-pad #editor-nudge-down { grid-column: 2; grid-row: 2; }
+
+#editor-img-width, #editor-img-height {
+  width: 64px;
+}
+
+.editor-stage.select-mode canvas#editor-canvas {
+  cursor: default;
+}
+
 #editor-color {
   width: 32px;
   height: 32px;
