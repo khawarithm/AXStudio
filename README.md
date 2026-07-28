@@ -88,8 +88,13 @@ axstudio/
 - **Buat PDF**: buat dokumen baru dari teks (word-wrap & pagination otomatis)
   atau dari kumpulan gambar (urutan bisa diatur drag & drop), lengkap dengan
   preview hasil sebelum diunduh atau dibuka di Viewer.
-- **Edit PDF**: tambahkan teks, gambar bebas (pen), kotak, elips, atau sisipan
-  gambar langsung di atas halaman PDF, lalu terapkan permanen ke dokumen.
+- **Edit PDF**: tambahkan teks (pilih font Helvetica/Times/Courier, bold,
+  underline, warna), gambar bebas (pen), kotak, elips, atau sisipan gambar
+  (bisa diubah ukurannya) langsung di atas halaman PDF. Tool "Pilih/Geser"
+  untuk memindahkan elemen mana pun dengan drag bebas atau tombol arah
+  dengan langkah pixel presisi yang bisa diatur. Tombol pintas "Tambah
+  Header" untuk judul besar di atas halaman. Semua perubahan diterapkan
+  permanen ke dokumen dengan satu klik.
 - **Export**: semua halaman / halaman tertentu ke PNG atau JPG, kualitas &
   skala resolusi dapat diatur, preview halaman terpilih tampil otomatis saat
   mengetik nomor/rentang halaman. Saat lebih dari satu halaman diexport,
@@ -125,8 +130,22 @@ Lihat `libs/README.md` untuk instruksi menjalankan 100% offline (tanpa CDN).
   akan menampilkan pesan error yang jelas di snackbar.
 - **Bluetooth/USB Printer**: menggunakan Web Bluetooth API & WebUSB API —
   hanya tersedia di browser berbasis Chromium (Chrome, Edge, Android Chrome)
-  dengan koneksi HTTPS.
+  dengan koneksi HTTPS. Cetak mentah ESC/POS lewat jalur ini hanya bekerja
+  untuk printer thermal tanpa driver OS bawaan — jika interface printer
+  sudah "dimiliki" driver sistem operasi (umum di Windows/macOS/Linux),
+  WebUSB tidak bisa mengambil alih koneksinya; paling andal dicoba di
+  Android via USB-OTG. Aplikasi sekarang memverifikasi status setiap transfer
+  byte dan akan menampilkan pesan error yang jujur (bukan "berhasil" palsu)
+  jika transfer benar-benar gagal.
 - **Compress PDF**: pdf-lib tidak melakukan re-encode gambar raster, sehingga
   kompresi bekerja lewat optimasi object stream (efektif untuk dokumen hasil
   edit dengan banyak objek redundan). Untuk kompresi gambar agresif, perlu
   library tambahan di luar scope "no-framework, lean deps" pada permintaan ini.
+- **Edit PDF — tool "Pilih/Geser"**: klik elemen untuk memilihnya (kotak
+  putus-putus biru muncul), lalu geser dengan drag langsung di kanvas atau
+  dengan tombol arah + input "langkah (px)" untuk presisi pixel-per-klik.
+  Saat teks terpilih, kontrol font/bold/underline/warna di toolbar otomatis
+  mengedit elemen tersebut secara langsung; saat tidak ada yang terpilih,
+  kontrol yang sama menjadi gaya default untuk elemen berikutnya yang dibuat.
+  Gambar yang disisipkan bisa diubah ukurannya lewat input Lebar/Tinggi pada
+  toolbar kontekstual yang muncul saat gambar tersebut dipilih.
